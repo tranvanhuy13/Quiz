@@ -1,0 +1,55 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# Environment variables and secret keys
+.env
+*.env
+
+# Flask cache or session files
+instance/
+*.db
+*.sqlite3
+
+# Pytest cache
+.pytest_cache/
+
+# VSCode settings
+.vscode/
+
+# macOS and Linux file metadata
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+htmlcov/
+coverage.xml
+*.cover
+*.log
+
+# PyCharm
+.idea/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local test data
+*.log
+*.bak
+*.tmp
+*.swp
+
+# Flask run file
+*.pid
+
+# mypy
+.mypy_cache/
+.dmypy.json
