@@ -18,76 +18,50 @@ def get_questions():
         "questions": res_question
     }
 
-@quiz_bp.route("/validate-question", methods=["POST"])
+@quiz_bp.route("/<quiz_id>/validate-question", methods=["POST"])
 def validate_question(quiz_id):
     data = request.get_json()
 
-    quiz_id = data.get("quiz_id")
-    question_id = data.get("question_id")
     selected_option = data.get("selected_option")
 
-    if not all([quiz_id, question_id is not None, selected_option is not None]):
-        return jsonify({"error": "Missing required fields"}), 400
+    if selected_option is None:
+        return jsonify({}),400
 
-    db = MockDatabase()
-    quiz = db.get_quiz(quiz_id)
-
-    if not quiz:
-        return jsonify({"error": "Quiz not found"}), 404
-
-    question = next((q for q in quiz["questions"] if q["id"] == question_id), None)
-    if not question:
-        return jsonify({"error": "Question not found"}), 404
-
-    is_correct = question["answer"] == selected_option
-
-    # Save the answer
-    quiz.setdefault("answers", []).append({
-        "question_id": question_id,
-        "selected_option": selected_option,
-        "correct": is_correct
-    })
-
-    db.save_quiz(quiz)
-
-    return jsonify({
-        "question_id": question_id,
-        "correct": is_correct,
-        "message": "Correct!" if is_correct else "Incorrect!"
-    })
-
-@quiz_bp.route("/submit", methods=["POST"])
-def submit():
-    data = request.get_json()
-
-    quiz_id = data.get("quiz_id")
-    if not quiz_id:
-        return jsonify({"error": "Quiz ID is required"}), 400
-
-    db = MockDatabase()
-    quiz = db.get_quiz(quiz_id)
+    quiz = MockDatabase.get_quiz(quiz_id)
 
     if not quiz:
         return jsonify({"error": "Quiz not found"}), 404
 
-    total_questions = len(quiz["questions"])
-    correct_answers = sum(1 for a in quiz.get("answers", []) if a.get("correct") is True)
+    current_question = quiz.get("data").get("current_question")
+    answers = quiz.get("data").get("questions")[current_question].get("answer")
 
-    result = {
-        "quiz_id": quiz_id,
-        "total_questions": total_questions,
-        "correct_answers": correct_answers,
-        "score_percent": round((correct_answers / total_questions) * 100, 2),
-        "passed": correct_answers >= total_questions * 0.6,  # 60% passing rule
-        "review": [
-            {
-                "question_id": q["id"],
-                "question": q["question"],
-                "correct_option": q["options"][q["answer"]],
-                "user_selected": next((a["selected_option"] for a in quiz["answers"] if a["question_id"] == q["id"]), None),
-                "is_correct": next((a["correct"] for a in quiz["answers"] if a["question_id"] == q["id"]), False)
-            } for q in quiz["questions"]
-        ]
+    correct_answer = selected_option == answers
+    MockDatabase.update_current_question(quiz_id)
+    data ={
+        "correct_answer": answers,
+        "status": correct_answer,
+        "feedback": Utils.get_feedback(correct_answer)
     }
+    size = MockDatabase.get_size(quiz_id)
+    if current_question == size - 1:
+        MockDatabase.update_end_time(quiz_id)
+    MockDatabase.append_session(quiz_id,data)
+    return jsonify(data)
 
-    return jsonify(result)
+@quiz_bp.route("/<quiz_id>/result", methods=["GET"])
+def result(quiz_id):
+    quiz = MockDatabase.get_quiz(quiz_id)
+    data = quiz.get("data")
+    answers = data.get("answers")
+    start_time = data.get("start_time")
+    end_time = data.get("end_time")
+    size = MockDatabase.get_size(quiz_id)
+    correct_answer = 0
+    for answer in answers:
+        if answer.get("status"):
+            correct_answer += 1
+    return jsonify({
+        "time":(end_time.timestamp() - start_time.timestamp()) // 1000,
+        "correct_answer": correct_answer,
+        "incorrect_answers": size - correct_answer,
+    })

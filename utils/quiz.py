@@ -8,15 +8,17 @@ from app.data import QUESTIONS
 class Utils:
     @classmethod
     def prepare_quiz(cls, ques_number: int):
-        quiz_id = uuid4()
-        selected_questions = cls.get_random_questions(ques_number)
+        # quiz_id = uuid4()
+        quiz_id = 1
+        generated_questions = cls.get_random_questions(ques_number)
         return {
             "quiz_id": quiz_id,
             "data": {
                 "start_time": datetime.utcnow(),
+                "end_time": None,
                 "answers": [],
                 "current_question": 0,
-                "questions": selected_questions
+                "questions": generated_questions
             }
         }
 
@@ -34,3 +36,7 @@ class Utils:
     @staticmethod
     def get_random_questions(n):
         return random.sample(QUESTIONS, min(n, len(QUESTIONS)))
+
+    @staticmethod
+    def get_feedback(correct):
+        return "Correct" if correct else "Incorrect"
