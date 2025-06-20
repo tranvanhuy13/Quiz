@@ -15,3 +15,9 @@ class MockDatabase:
         instance = cls.get_instance()
         print("saving quiz", quiz)
         instance.quiz_datas[quiz.get("quiz_id")] = quiz
+
+    def get_quiz(cls, quiz_id):
+        instance = cls.get_instance()
+        return instance.quiz_datas.get(quiz_id)
+
+
