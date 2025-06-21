@@ -35,12 +35,12 @@ def validate_question(quiz_id):
     current_question = quiz.get("data").get("current_question")
     answers = quiz.get("data").get("questions")[current_question].get("answer")
 
-    correct_answer = selected_option == answers
+    status = selected_option == answers
     MockDatabase.update_current_question(quiz_id)
     data ={
         "correct_answer": answers,
-        "status": correct_answer,
-        "feedback": Utils.get_feedback(correct_answer)
+        "status": status,
+        "feedback": Utils.get_feedback(status)
     }
     size = MockDatabase.get_size(quiz_id)
     if current_question == size - 1:
