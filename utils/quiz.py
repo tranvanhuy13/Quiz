@@ -8,8 +8,7 @@ from app.data import QUESTIONS
 class Utils:
     @classmethod
     def prepare_quiz(cls, ques_number: int):
-        # quiz_id = uuid4()
-        quiz_id = 1
+        quiz_id = uuid4()
         generated_questions = cls.get_random_questions(ques_number)
         return {
             "quiz_id": quiz_id,
